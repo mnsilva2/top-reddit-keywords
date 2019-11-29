@@ -1,5 +1,4 @@
 const baseURL = "https://www.reddit.com/r/";
-
 var app = new Vue({
     el: '#app',
     data: {
@@ -43,7 +42,6 @@ var app = new Vue({
                 label: "Tzuyu",
                 count: 0
             },
-
         ],
         current: 0,
         otherCounter: 0,
@@ -54,11 +52,13 @@ var app = new Vue({
             e.preventDefault();
             this.current = 0;
             this.otherCounter = 0;
+            piechart.style.display = "none";
             for (let i = 0; i < this.keywords.length; i++) {
                 const keyword = this.keywords[i];
                 keyword.count = 0
             }
-            document.getElementById("piechart").innerHTML = ""
+            document.getElementById('piechart').style.display = "none";
+
             makeRequest(baseURL + this.subreddit + "/" + this.category + ".json?limit=100", "GET", this.parsePosts)
         },
         addAnother: function () {
@@ -118,7 +118,7 @@ var app = new Vue({
                 title: 'Top Reddit Posts on ' + this.subreddit,
                 pieSliceText: 'label',
             };
-
+            document.getElementById('piechart').style.display = "block"
             var chart = new google.visualization.PieChart(document.getElementById('piechart'));
 
             chart.draw(data, options);

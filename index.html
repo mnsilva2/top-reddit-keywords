@@ -5,8 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
-        integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
 
     <title>Top Reddit Post</title>
 </head>
@@ -21,9 +20,6 @@
         <form @submit="getPosts">
             <div class="row">
                 <div class="col-md-6">
-
-
-
                     <div class="row mb-3">
                         <div class="col-md-12">
                             <div class="input-group">
@@ -34,7 +30,6 @@
                                     aria-describedby="subreddit" v-model="subreddit">
                             </div>
                         </div>
-
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-12">
@@ -63,14 +58,13 @@
                     <div class="row mb-3">
                         <div class="col-md-12">
                             <div class="custom-control custom-switch">
-                                <input type="checkbox" class="custom-control-input" id="customSwitch1"
+                                <input type="checkbox" class="custom-control-input" id="includeOther"
                                     v-model="includeOther">
-                                <label class="custom-control-label" for="customSwitch1">Include Other</label>
+                                <label class="custom-control-label" for="includeOther">Include Other</label>
                             </div>
                         </div>
                     </div>
                 </div>
-
                 <div class="col-md-6">
                     <div class="row mb-3" v-for="(keyword, index) in keywords">
                         <div class="col-md-12">
@@ -84,7 +78,6 @@
 
                             </div>
                         </div>
-
                     </div>
                     <div class="row">
                         <div class="col-md-12">
@@ -99,12 +92,11 @@
 
             <button type="submit" class="btn btn-primary btn-block">Get Top posts</button>
             <div class="progress mb-3">
-                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
-                    :aria-valuenow="current" aria-valuemin="0" :aria-valuemax="limit"
+                <div class="progress-bar progress-bar-striped progress-bar-animated"
                     v-bind:style="{ width: current/limit*100 + '%'}"></div>
             </div>
         </form>
-        <div id="piechart" style="width: 100%; height: 500px;"></div>
+        <div id="piechart" style="width: 100%; height: 800px; display:none;"></div>
 
     </div>
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
