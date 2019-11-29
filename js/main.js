@@ -92,6 +92,7 @@ var app = new Vue({
                     this.otherCounter++;
                 }
             }
+            // recursively calls it self.
             makeRequest(baseURL + this.subreddit + "/" + this.category + ".json?limit=100&after=" + response.data.after, "GET", this.parsePosts);
         },
         drawGraph: function () {
@@ -121,6 +122,7 @@ var app = new Vue({
             var chart = new google.visualization.PieChart(document.getElementById('piechart'));
 
             chart.draw(data, options);
+
             document.getElementById('piechart').scrollIntoView({
                 behavior: 'smooth'
             });
