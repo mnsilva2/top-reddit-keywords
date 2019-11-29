@@ -98,7 +98,7 @@ var app = new Vue({
 
             let preData = [
                 ['Keyword', 'Number']
-            ]
+            ];
             //duplicate object
             let tempKeyWords = JSON.parse(JSON.stringify(this.keywords));
 
@@ -109,7 +109,7 @@ var app = new Vue({
 
             for (let i = 0; i < tempKeyWords.length; i++) {
                 const keyword = tempKeyWords[i];
-                preData.push([keyword.label, keyword.count])
+                preData.push([keyword.label, keyword.count]);
             }
             let data = google.visualization.arrayToDataTable(preData);
 
@@ -117,7 +117,7 @@ var app = new Vue({
                 title: 'Top Reddit Posts on ' + this.subreddit,
                 pieSliceText: 'label',
             };
-            document.getElementById('piechart').style.display = "block"
+            document.getElementById('piechart').style.display = "block";
             var chart = new google.visualization.PieChart(document.getElementById('piechart'));
 
             chart.draw(data, options);
