@@ -55,21 +55,20 @@ var app = new Vue({
             piechart.style.display = "none";
             for (let i = 0; i < this.keywords.length; i++) {
                 const keyword = this.keywords[i];
-                keyword.count = 0
+                keyword.count = 0;
             }
             document.getElementById('piechart').style.display = "none";
 
             makeRequest(baseURL + this.subreddit + "/" + this.category + ".json?limit=100", "GET", this.parsePosts)
         },
         addAnother: function () {
-            this.keywords.push({ label: "", count: 0 })
+            this.keywords.push({ label: "", count: 0 });
         },
         removeItem: function (i) {
-            this.keywords.splice(i, 1)
+            this.keywords.splice(i, 1);
         },
         parsePosts: function (response) {
-            response = JSON.parse(response)
-            console.log(response)
+            response = JSON.parse(response);
             for (let i = 0; i < response.data.children.length; i++) {
                 this.current++;
                 if (this.current > this.limit) {
@@ -85,7 +84,7 @@ var app = new Vue({
                     if (post.data.title) {
                         if (post.data.title.toUpperCase().indexOf(keyword.label.toUpperCase()) > -1) {
                             keyword.count++;
-                            foundOne = true
+                            foundOne = true;
                         }
                     }
                 }
@@ -93,20 +92,20 @@ var app = new Vue({
                     this.otherCounter++;
                 }
             }
-            makeRequest(baseURL + this.subreddit + "/" + this.category + ".json?limit=100&after=" + response.data.after, "GET", this.parsePosts)
+            makeRequest(baseURL + this.subreddit + "/" + this.category + ".json?limit=100&after=" + response.data.after, "GET", this.parsePosts);
         },
         drawGraph: function () {
 
             let preData = [
                 ['Keyword', 'Number']
             ]
-
-            let tempKeyWords = JSON.parse(JSON.stringify(this.keywords))
+            //duplicate object
+            let tempKeyWords = JSON.parse(JSON.stringify(this.keywords));
 
             if (this.includeOther) {
-                tempKeyWords.push({ label: "Other", count: this.otherCounter })
+                tempKeyWords.push({ label: "Other", count: this.otherCounter });
             }
-            tempKeyWords = tempKeyWords.sort((a, b) => { return naturalSorter(b.count + "", a.count + "") })
+            tempKeyWords = tempKeyWords.sort((a, b) => { return naturalSorter(b.count + "", a.count + "") });
 
             for (let i = 0; i < tempKeyWords.length; i++) {
                 const keyword = tempKeyWords[i];
