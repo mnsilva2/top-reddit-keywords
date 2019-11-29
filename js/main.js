@@ -5,6 +5,7 @@ var app = new Vue({
         subreddit: "twice",
         limit: 100,
         category: "new",
+        title: "Most Posted Members in /r/twice",
         keywords: [
             {
                 label: "Jihyo",
@@ -52,14 +53,13 @@ var app = new Vue({
             e.preventDefault();
             this.current = 0;
             this.otherCounter = 0;
-            piechart.style.display = "none";
             for (let i = 0; i < this.keywords.length; i++) {
                 const keyword = this.keywords[i];
                 keyword.count = 0;
             }
-            document.getElementById('piechart').style.display = "none";
+            document.getElementById('chartContainer').style.display = "none";
 
-            makeRequest(baseURL + this.subreddit + "/" + this.category + ".json?limit=100", "GET", this.parsePosts)
+            makeRequest(baseURL + this.subreddit + "/" + "top" + ".json?t=all&limit=100", "GET", this.parsePosts)
         },
         addAnother: function () {
             this.keywords.push({ label: "", count: 0 });
@@ -93,7 +93,7 @@ var app = new Vue({
                 }
             }
             // recursively calls it self.
-            makeRequest(baseURL + this.subreddit + "/" + this.category + ".json?limit=100&after=" + response.data.after, "GET", this.parsePosts);
+            makeRequest(baseURL + this.subreddit + "/" + "top" + ".json?t=all&limit=100&after=" + response.data.after, "GET", this.parsePosts);
         },
         drawGraph: function () {
 
@@ -115,10 +115,10 @@ var app = new Vue({
             let data = google.visualization.arrayToDataTable(preData);
 
             var options = {
-                title: 'Top Reddit Posts on ' + this.subreddit,
-                pieSliceText: 'label',
+                title: this.title,
+                pieSliceText: 'percentage',
             };
-            document.getElementById('piechart').style.display = "block";
+            document.getElementById('chartContainer').style.display = "block";
             var chart = new google.visualization.PieChart(document.getElementById('piechart'));
 
             chart.draw(data, options);
@@ -126,6 +126,7 @@ var app = new Vue({
             document.getElementById('piechart').scrollIntoView({
                 behavior: 'smooth'
             });
+            document.getElementById('download').href = chart.getImageURI()
         }
     }
 })
