@@ -59,7 +59,7 @@ var app = new Vue({
             }
             document.getElementById('chartContainer').style.display = "none";
 
-            makeRequest(baseURL + this.subreddit + "/" + "top" + ".json?t=all&limit=100", "GET", this.parsePosts)
+            makeRequest(baseURL + this.subreddit + "/" + this.category + ".json?limit=100", "GET", this.parsePosts)
         },
         addAnother: function () {
             this.keywords.push({ label: "", count: 0 });
@@ -93,7 +93,7 @@ var app = new Vue({
                 }
             }
             // recursively calls it self.
-            makeRequest(baseURL + this.subreddit + "/" + "top" + ".json?t=all&limit=100&after=" + response.data.after, "GET", this.parsePosts);
+            makeRequest(baseURL + this.subreddit + "/" + this.category + ".json?limit=100&after=" + response.data.after, "GET", this.parsePosts);
         },
         drawGraph: function () {
 
@@ -107,16 +107,22 @@ var app = new Vue({
                 tempKeyWords.push({ label: "Other", count: this.otherCounter });
             }
             tempKeyWords = tempKeyWords.sort((a, b) => { return naturalSorter(b.count + "", a.count + "") });
+            let total = 0;
+            for (let i = 0; i < tempKeyWords.length; i++) {
+                total += tempKeyWords[i].count;
+
+            }
 
             for (let i = 0; i < tempKeyWords.length; i++) {
                 const keyword = tempKeyWords[i];
-                preData.push([keyword.label, keyword.count]);
+                preData.push([keyword.label + ": " + Math.round(keyword.count / total * 1000) / 10 + "%", keyword.count]);
             }
             let data = google.visualization.arrayToDataTable(preData);
 
             var options = {
                 title: this.title,
                 pieSliceText: 'percentage',
+
             };
             document.getElementById('chartContainer').style.display = "block";
             var chart = new google.visualization.PieChart(document.getElementById('piechart'));
