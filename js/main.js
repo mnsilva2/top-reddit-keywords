@@ -1,59 +1,73 @@
 const baseURL = "https://api.pushshift.io/reddit/submission/search";
-const fields = "title,id,full_link,created_utc"
+const fields = "title,id,full_link,created_utc,score"
+let data;
 var app = new Vue({
     el: '#app',
     data: {
         subreddit: "twice",
         limit: 100,
         category: "created_utc",
-        title: "Most Posted Members in /r/twice",
+        title: "Most Posted Members in r/twice",
+        message: "",
         keywords: [
             {
                 label: "Jihyo",
-                count: 0
+                count: 0,
+                score: 0
             },
             {
                 label: "Nayeon",
-                count: 0
+                count: 0,
+                score: 0
             },
             {
                 label: "Jeongyeon",
-                count: 0
+                count: 0,
+                score: 0
             },
             {
                 label: "Momo",
-                count: 0
+                count: 0,
+                score: 0
             },
             {
                 label: "Sana",
-                count: 0
+                count: 0,
+                score: 0
             },
             {
                 label: "Mina",
-                count: 0
+                count: 0,
+                score: 0
             },
             {
                 label: "Dahyun",
-                count: 0
+                count: 0,
+                score: 0
             },
             {
                 label: "Chaeyoung",
-                count: 0
+                count: 0,
+                score: 0
             },
             {
                 label: "Tzuyu",
-                count: 0
+                count: 0,
+                score: 0
             },
         ],
         current: 0,
         otherCounter: 0,
-        includeOther: false
+        otherScore: 0,
+        includeOther: false,
+        compareScore: false
     },
     methods: {
         getPosts: function (e) {
             e.preventDefault();
             this.current = 0;
             this.otherCounter = 0;
+            this.message = "";
             for (let i = 0; i < this.keywords.length; i++) {
                 const keyword = this.keywords[i];
                 keyword.count = 0;
@@ -62,9 +76,11 @@ var app = new Vue({
             const params = {
                 subreddit: this.subreddit,
                 sort_type: this.category,
-                size: 100,
+                size: this.limit > 500 ? 500 : this.limit,
                 fields: fields
             }
+
+
             makeGETRequest(baseURL, params, this.parsePosts)
         },
         addAnother: function () {
@@ -85,12 +101,14 @@ var app = new Vue({
                     if (post.title) {
                         if (post.title.toUpperCase().indexOf(keyword.label.toUpperCase()) > -1) {
                             keyword.count++;
+                            keyword.score += post.score;
                             foundOne = true;
                         }
                     }
                 }
                 if (!foundOne) {
                     this.otherCounter++;
+                    this.otherScore += post.score
                 }
 
                 this.current++;
@@ -103,14 +121,24 @@ var app = new Vue({
 
                 lastID = post.created_utc
             }
+
+            //No More Posts in here, creating chart
+            if (lastID == "") {
+                google.charts.load('current', { 'packages': ['corechart'] });
+                google.charts.setOnLoadCallback(this.drawGraph);
+                this.message = "This subreddit only has " + this.current + " posts"
+                return;
+            }
+
             // recursively calls it self.
             const params = {
                 subreddit: this.subreddit,
                 sort_type: this.category,
                 before: lastID,
-                size: 100,
+                size: this.limit - this.current > 500 ? 500 : this.limit - this.current,
                 fields: fields
             }
+            // this.drawGraph();
             makeGETRequest(baseURL, params, this.parsePosts)
 
         },
@@ -119,24 +147,34 @@ var app = new Vue({
             let preData = [
                 ['Keyword', 'Number']
             ];
+
+
             //duplicate object
             let tempKeyWords = JSON.parse(JSON.stringify(this.keywords));
-
+            console.log(tempKeyWords);
             if (this.includeOther) {
-                tempKeyWords.push({ label: "Other", count: this.otherCounter });
+                tempKeyWords.push({ label: "Other", count: this.otherCounter, score: this.otherScore });
             }
+            // if (this.compareScore) {
+            //     tempKeyWords = tempKeyWords.sort((a, b) => { return naturalSorter(b.score / b.count + "", a.score / a.count + "") });
+            //     for (let i = 0; i < tempKeyWords.length; i++) {
+            //         const keyword = tempKeyWords[i];
+            //         preData.push([keyword.label + ": " + Math.round(keyword.score / keyword.count) + " upvotes per post", Math.round(keyword.score / keyword.count)]);
+            //     }
+            // } else {
             tempKeyWords = tempKeyWords.sort((a, b) => { return naturalSorter(b.count + "", a.count + "") });
             let total = 0;
             for (let i = 0; i < tempKeyWords.length; i++) {
                 total += tempKeyWords[i].count;
-
             }
 
             for (let i = 0; i < tempKeyWords.length; i++) {
                 const keyword = tempKeyWords[i];
                 preData.push([keyword.label + ": " + Math.round(keyword.count / total * 1000) / 10 + "%", keyword.count]);
             }
-            let data = google.visualization.arrayToDataTable(preData);
+            // }
+
+            data = google.visualization.arrayToDataTable(preData);
 
             var options = {
                 title: this.title,
@@ -152,6 +190,8 @@ var app = new Vue({
                 behavior: 'smooth'
             });
             document.getElementById('download').href = chart.getImageURI()
+        },
+        updateGraph: function () {
         }
     }
 })
