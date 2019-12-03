@@ -1,11 +1,24 @@
-function makeRequest(url, method, callback) {
+function makeGETRequest(url, params, callback) {
     const xhttp = new XMLHttpRequest()
     xhttp.onload = function () {
         callback(this.responseText)
     }
-    xhttp.open(method, url, true);
+    /**Parse params Object into URL parameters*/
+    let paramsArray = []
+    for (let i = 0; i < Object.keys(params).length; i++) {
+        const key = Object.keys(params)[i];
+        paramsArray.push(key + "=" + (params[key]))
+    }
+    let paramsString = ""
+    if (paramsArray.length > 0) {
+        paramsString = "?" + paramsArray.join("&")
+    }
+
+    xhttp.open("GET", url + paramsString, true);
     xhttp.send();
 }
+
+
 //https://stackoverflow.com/a/2802804
 function naturalSorter(as, bs) {
     var a, b, a1, b1, i = 0, n, L,

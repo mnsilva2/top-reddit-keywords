@@ -1,10 +1,11 @@
-const baseURL = "https://www.reddit.com/r/";
+const baseURL = "https://api.pushshift.io/reddit/submission/search";
+const fields = "title,id,full_link,created_utc"
 var app = new Vue({
     el: '#app',
     data: {
         subreddit: "twice",
         limit: 100,
-        category: "new",
+        category: "created_utc",
         title: "Most Posted Members in /r/twice",
         keywords: [
             {
@@ -58,8 +59,13 @@ var app = new Vue({
                 keyword.count = 0;
             }
             document.getElementById('chartContainer').style.display = "none";
-
-            makeRequest(baseURL + this.subreddit + "/" + "top" + ".json?t=all&limit=100", "GET", this.parsePosts)
+            const params = {
+                subreddit: this.subreddit,
+                sort_type: this.category,
+                size: 100,
+                fields: fields
+            }
+            makeGETRequest(baseURL, params, this.parsePosts)
         },
         addAnother: function () {
             this.keywords.push({ label: "", count: 0 });
@@ -69,20 +75,15 @@ var app = new Vue({
         },
         parsePosts: function (response) {
             response = JSON.parse(response);
-            for (let i = 0; i < response.data.children.length; i++) {
-                this.current++;
-                if (this.current > this.limit) {
-                    google.charts.load('current', { 'packages': ['corechart'] });
-                    google.charts.setOnLoadCallback(this.drawGraph);
-                    return;
-                }
-                const post = response.data.children[i];
+            let lastID = "";
+            for (let i = 0; i < response.data.length; i++) {
+                const post = response.data[i];
                 let foundOne = false;
                 for (let j = 0; j < this.keywords.length; j++) {
                     const keyword = this.keywords[j];
 
-                    if (post.data.title) {
-                        if (post.data.title.toUpperCase().indexOf(keyword.label.toUpperCase()) > -1) {
+                    if (post.title) {
+                        if (post.title.toUpperCase().indexOf(keyword.label.toUpperCase()) > -1) {
                             keyword.count++;
                             foundOne = true;
                         }
@@ -91,9 +92,27 @@ var app = new Vue({
                 if (!foundOne) {
                     this.otherCounter++;
                 }
+
+                this.current++;
+                if (this.current >= this.limit) {
+                    google.charts.load('current', { 'packages': ['corechart'] });
+                    google.charts.setOnLoadCallback(this.drawGraph);
+                    return;
+                }
+
+
+                lastID = post.created_utc
             }
             // recursively calls it self.
-            makeRequest(baseURL + this.subreddit + "/" + "top" + ".json?t=all&limit=100&after=" + response.data.after, "GET", this.parsePosts);
+            const params = {
+                subreddit: this.subreddit,
+                sort_type: this.category,
+                before: lastID,
+                size: 100,
+                fields: fields
+            }
+            makeGETRequest(baseURL, params, this.parsePosts)
+
         },
         drawGraph: function () {
 
@@ -107,16 +126,22 @@ var app = new Vue({
                 tempKeyWords.push({ label: "Other", count: this.otherCounter });
             }
             tempKeyWords = tempKeyWords.sort((a, b) => { return naturalSorter(b.count + "", a.count + "") });
+            let total = 0;
+            for (let i = 0; i < tempKeyWords.length; i++) {
+                total += tempKeyWords[i].count;
+
+            }
 
             for (let i = 0; i < tempKeyWords.length; i++) {
                 const keyword = tempKeyWords[i];
-                preData.push([keyword.label, keyword.count]);
+                preData.push([keyword.label + ": " + Math.round(keyword.count / total * 1000) / 10 + "%", keyword.count]);
             }
             let data = google.visualization.arrayToDataTable(preData);
 
             var options = {
                 title: this.title,
                 pieSliceText: 'percentage',
+
             };
             document.getElementById('chartContainer').style.display = "block";
             var chart = new google.visualization.PieChart(document.getElementById('piechart'));
