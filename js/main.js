@@ -1,5 +1,5 @@
 const baseURL = "https://api.pushshift.io/reddit/submission/search";
-const fields = "title,id,full_link,created_utc,score"
+const fields = "title,id,full_link,created_utc,score,author,removed_by_category"
 let data;
 var app = new Vue({
     el: '#app',
@@ -94,6 +94,12 @@ var app = new Vue({
             let lastID = "";
             for (let i = 0; i < response.data.length; i++) {
                 const post = response.data[i];
+            
+                if(post.author == "[deleted]" || post.removed_by_category){
+                    console.log("Removed: ",post)
+                    lastID = post.created_utc
+                    continue;
+                }
                 let foundOne = false;
                 for (let j = 0; j < this.keywords.length; j++) {
                     const keyword = this.keywords[j];
@@ -109,6 +115,8 @@ var app = new Vue({
                 if (!foundOne) {
                     this.otherCounter++;
                     this.otherScore += post.score
+                    console.log("Other: ", post)
+
                 }
 
                 this.current++;
