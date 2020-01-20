@@ -8,6 +8,20 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
 
     <title>Top Reddit Post</title>
+    <style>
+        .card-horizontal {
+            display: flex;
+            flex: 1 1 auto;
+        }
+
+        .img-square-wrapper {
+            height: 10rem;
+        }
+
+        .card-horizontal img {
+            height: 100%;
+        }
+    </style>
 </head>
 
 <body>
@@ -76,15 +90,14 @@
                             </div>
                         </div>
                     </div>
-                    <!-- <div class="row mb-3">
+                    <div class="row mb-3">
                         <div class="col-md-12">
                             <div class="custom-control custom-switch">
-                                <input type="checkbox" class="custom-control-input" id="compareScore"
-                                    v-model="compareScore">
-                                <label class="custom-control-label" for="compareScore">Compare with Score</label>
+                                <input type="checkbox" class="custom-control-input" id="showposts" v-model="showposts">
+                                <label class="custom-control-label" for="showposts">Show Posts</label>
                             </div>
                         </div>
-                    </div> -->
+                    </div>
                 </div>
                 <div class="col-md-6">
                     <div class="row mb-3" v-for="(keyword, index) in keywords">
@@ -120,6 +133,31 @@
             <div id="piechart" style="width: 900px; height: 500px;"></div>
             <a href="" target="_blank" id="download" class="btn btn-primary">Get Image</a>
         </div>
+        <div id="finalcontainer" v-if="showposts" class="container-fluid">
+            <div v-for="post in fullposts">
+                <div class="row">
+                    <div class="col-12 mt-3">
+                        <div class="card">
+                            <div class="card-horizontal">
+                                <div class="img-square-wrapper">
+                                    <a :href="post.full_link" target="_blank" v-html="getPreview(post)">
+
+                                    </a>
+                                </div>
+                                <div class="card-body">
+                                    <h4>
+                                        <a class="card-title" :href="post.full_link" target="_blank"
+                                            v-html="post.title">
+                                        </a>
+                                    </h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>

@@ -9,6 +9,9 @@ var app = new Vue({
         category: "created_utc",
         title: "Most Posted Members in r/twice",
         message: "",
+        fullposts: [],
+        showposts: false,
+        tempfields: "",
         keywords: [
             {
                 label: "Jihyo",
@@ -65,6 +68,7 @@ var app = new Vue({
     methods: {
         getPosts: function (e) {
             e.preventDefault();
+            tempfields = fields
             this.current = 0;
             this.otherCounter = 0;
             this.message = "";
@@ -72,14 +76,17 @@ var app = new Vue({
                 const keyword = this.keywords[i];
                 keyword.count = 0;
             }
+            this.fullposts = []
             document.getElementById('chartContainer').style.display = "none";
+            if (this.showposts) {
+                tempfields += ",preview,url"
+            }
             const params = {
                 subreddit: this.subreddit,
                 sort_type: this.category,
                 size: this.limit > 500 ? 500 : this.limit,
-                fields: fields
+                fields: tempfields
             }
-
 
             makeGETRequest(baseURL, params, this.parsePosts)
         },
@@ -94,9 +101,8 @@ var app = new Vue({
             let lastID = "";
             for (let i = 0; i < response.data.length; i++) {
                 const post = response.data[i];
-            
-                if(post.author == "[deleted]" || post.removed_by_category){
-                    console.log("Removed: ",post)
+
+                if (post.author == "[deleted]" || post.removed_by_category) {
                     lastID = post.created_utc
                     continue;
                 }
@@ -108,15 +114,18 @@ var app = new Vue({
                         if (post.title.toUpperCase().indexOf(keyword.label.toUpperCase()) > -1) {
                             keyword.count++;
                             keyword.score += post.score;
+                            if (this.showposts && !foundOne) {
+                                this.fullposts.push(post)
+                            }
                             foundOne = true;
+
+
                         }
                     }
                 }
                 if (!foundOne) {
                     this.otherCounter++;
                     this.otherScore += post.score
-                    console.log("Other: ", post)
-
                 }
 
                 this.current++;
@@ -151,7 +160,6 @@ var app = new Vue({
 
         },
         drawGraph: function () {
-
             let preData = [
                 ['Keyword', 'Number']
             ];
@@ -159,17 +167,9 @@ var app = new Vue({
 
             //duplicate object
             let tempKeyWords = JSON.parse(JSON.stringify(this.keywords));
-            console.log(tempKeyWords);
             if (this.includeOther) {
                 tempKeyWords.push({ label: "Other", count: this.otherCounter, score: this.otherScore });
             }
-            // if (this.compareScore) {
-            //     tempKeyWords = tempKeyWords.sort((a, b) => { return naturalSorter(b.score / b.count + "", a.score / a.count + "") });
-            //     for (let i = 0; i < tempKeyWords.length; i++) {
-            //         const keyword = tempKeyWords[i];
-            //         preData.push([keyword.label + ": " + Math.round(keyword.score / keyword.count) + " upvotes per post", Math.round(keyword.score / keyword.count)]);
-            //     }
-            // } else {
             tempKeyWords = tempKeyWords.sort((a, b) => { return naturalSorter(b.count + "", a.count + "") });
             let total = 0;
             for (let i = 0; i < tempKeyWords.length; i++) {
@@ -199,7 +199,41 @@ var app = new Vue({
             });
             document.getElementById('download').href = chart.getImageURI()
         },
-        updateGraph: function () {
+        getPreview: function (post) {
+            if (post && post.preview && post.preview.images && post.preview.images[0].resolutions) {
+                let res = post.preview.images[0].resolutions
+                if (res.length > 0) {
+                    let img = res[res.length - 1].url.split("&amp;").join("&")
+                    return this.getImage(img, post.title)
+                }
+            } else {
+                if (post && post.url) {
+                    if (post.url.indexOf("gfycat.com") > -1) {
+                        let url = post.url
+                        if (post.url.indexOf("-") > -1) {
+                            url = post.url.substr(0, post.url.indexOf("-"))
+                        }
+                        console.log("post.url", post.url, url.replace("gfycat.com/", "gfycat.com/ifr/"))
+
+                        return "<iframe src='" + url.replace("gfycat.com/", "gfycat.com/ifr/") + "' frameborder='0' scrolling='no' allowfullscreen></iframe>"
+                    }
+
+
+                    if (post.url.indexOf("i.redd.it") > -1) {
+                        return this.getImage(post.url, post.title)
+                    }
+                    if (post.url.indexOf("imgur.com") > -1) {
+
+                        return this.getImage("https://media.glassdoor.com/sqll/900384/imgur-squarelogo-1512690375276.png")
+                    }
+                    //didn't find an image
+                    return ""
+                }
+            }
+        },
+        getImage(src, alt) {
+            return "<img class='' src='" + src + "' alt='" + alt + "'>"
+
         }
     }
 })
