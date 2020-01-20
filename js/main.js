@@ -1,5 +1,5 @@
 const baseURL = "https://api.pushshift.io/reddit/submission/search";
-const fields = "title,id,full_link,created_utc,score,author,removed_by_category"
+const fields = "title,id,full_link,created_utc,author,removed_by_category"
 let data;
 var app = new Vue({
     el: '#app',
@@ -15,55 +15,44 @@ var app = new Vue({
         keywords: [
             {
                 label: "Jihyo",
-                count: 0,
-                score: 0
+                count: 0
             },
             {
                 label: "Nayeon",
-                count: 0,
-                score: 0
+                count: 0
             },
             {
                 label: "Jeongyeon",
-                count: 0,
-                score: 0
+                count: 0
             },
             {
                 label: "Momo",
-                count: 0,
-                score: 0
+                count: 0
             },
             {
                 label: "Sana",
-                count: 0,
-                score: 0
+                count: 0
             },
             {
                 label: "Mina",
-                count: 0,
-                score: 0
+                count: 0
             },
             {
                 label: "Dahyun",
-                count: 0,
-                score: 0
+                count: 0
             },
             {
                 label: "Chaeyoung",
-                count: 0,
-                score: 0
+                count: 0
             },
             {
                 label: "Tzuyu",
-                count: 0,
-                score: 0
+                count: 0
             },
         ],
         current: 0,
         otherCounter: 0,
-        otherScore: 0,
         includeOther: false,
-        compareScore: false
     },
     methods: {
         getPosts: function (e) {
@@ -113,7 +102,6 @@ var app = new Vue({
                     if (post.title) {
                         if (post.title.toUpperCase().indexOf(keyword.label.toUpperCase()) > -1) {
                             keyword.count++;
-                            keyword.score += post.score;
                             if (this.showposts && !foundOne) {
                                 this.fullposts.push(post)
                             }
@@ -125,7 +113,6 @@ var app = new Vue({
                 }
                 if (!foundOne) {
                     this.otherCounter++;
-                    this.otherScore += post.score
                 }
 
                 this.current++;
@@ -155,7 +142,6 @@ var app = new Vue({
                 size: this.limit - this.current > 500 ? 500 : this.limit - this.current,
                 fields: fields
             }
-            // this.drawGraph();
             makeGETRequest(baseURL, params, this.parsePosts)
 
         },
@@ -164,11 +150,10 @@ var app = new Vue({
                 ['Keyword', 'Number']
             ];
 
-
             //duplicate object
             let tempKeyWords = JSON.parse(JSON.stringify(this.keywords));
             if (this.includeOther) {
-                tempKeyWords.push({ label: "Other", count: this.otherCounter, score: this.otherScore });
+                tempKeyWords.push({ label: "Other", count: this.otherCounter });
             }
             tempKeyWords = tempKeyWords.sort((a, b) => { return naturalSorter(b.count + "", a.count + "") });
             let total = 0;
@@ -180,7 +165,6 @@ var app = new Vue({
                 const keyword = tempKeyWords[i];
                 preData.push([keyword.label + ": " + Math.round(keyword.count / total * 1000) / 10 + "%", keyword.count]);
             }
-            // }
 
             data = google.visualization.arrayToDataTable(preData);
 
