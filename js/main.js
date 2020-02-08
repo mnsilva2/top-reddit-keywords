@@ -12,6 +12,9 @@ var app = new Vue({
         fullposts: [],
         showposts: false,
         tempfields: "",
+        autokeywords: false,
+        limitKeywords: 10,
+        minchars: 3,
         keywords: [
             {
                 label: "Jihyo",
@@ -51,20 +54,19 @@ var app = new Vue({
             },
         ],
         current: 0,
-        otherCounter: 0,
-        includeOther: false,
+        autoKeywordsList: []
     },
     methods: {
         getPosts: function (e) {
             e.preventDefault();
             tempfields = fields
             this.current = 0;
-            this.otherCounter = 0;
             this.message = "";
             for (let i = 0; i < this.keywords.length; i++) {
                 const keyword = this.keywords[i];
                 keyword.count = 0;
             }
+            this.autoKeywordsList = []
             this.fullposts = []
             document.getElementById('chartContainer').style.display = "none";
             if (this.showposts) {
@@ -96,24 +98,32 @@ var app = new Vue({
                     continue;
                 }
                 let foundOne = false;
-                for (let j = 0; j < this.keywords.length; j++) {
-                    const keyword = this.keywords[j];
+                if (!this.autokeywords) {
+                    for (let j = 0; j < this.keywords.length; j++) {
+                        const keyword = this.keywords[j];
 
-                    if (post.title) {
-                        if (post.title.toUpperCase().indexOf(keyword.label.toUpperCase()) > -1) {
-                            keyword.count++;
-                            if (this.showposts && !foundOne) {
-                                this.fullposts.push(post)
+                        if (post.title) {
+                            if (post.title.toUpperCase().indexOf(keyword.label.toUpperCase()) > -1) {
+                                keyword.count++;
+                                if (this.showposts && !foundOne) {
+                                    this.fullposts.push(post)
+                                }
+                                foundOne = true;
+
+
                             }
-                            foundOne = true;
-
-
+                        }
+                    }
+                } else {
+                    let parts = post.title.split(" ");
+                    for (let i = 0; i < parts.length; i++) {
+                        const part = parts[i];
+                        if (this.minchars <= part.length) {
+                            this.addtoAutoKeywordsList(part);
                         }
                     }
                 }
-                if (!foundOne) {
-                    this.otherCounter++;
-                }
+
 
                 this.current++;
                 if (this.current >= this.limit) {
@@ -135,13 +145,18 @@ var app = new Vue({
             }
 
             // recursively calls it self.
+            tempfields = fields
+            if (this.showposts) {
+                tempfields += ",preview,url"
+            }
             const params = {
                 subreddit: this.subreddit,
                 sort_type: this.category,
                 before: lastID,
                 size: this.limit - this.current > 500 ? 500 : this.limit - this.current,
-                fields: fields
+                fields: tempfields
             }
+
             makeGETRequest(baseURL, params, this.parsePosts)
 
         },
@@ -149,13 +164,20 @@ var app = new Vue({
             let preData = [
                 ['Keyword', 'Number']
             ];
-
+            let tempKeyWords = []
             //duplicate object
-            let tempKeyWords = JSON.parse(JSON.stringify(this.keywords));
-            if (this.includeOther) {
-                tempKeyWords.push({ label: "Other", count: this.otherCounter });
+            if (this.autokeywords) {
+                tempKeyWords = JSON.parse(JSON.stringify(this.autoKeywordsList));
+
+            } else {
+                tempKeyWords = JSON.parse(JSON.stringify(this.keywords));
             }
             tempKeyWords = tempKeyWords.sort((a, b) => { return naturalSorter(b.count + "", a.count + "") });
+            if (this.autokeywords) {
+                tempKeyWords = tempKeyWords.splice(0, this.limitKeywords)
+            }
+
+
             let total = 0;
             for (let i = 0; i < tempKeyWords.length; i++) {
                 total += tempKeyWords[i].count;
@@ -215,9 +237,17 @@ var app = new Vue({
                 }
             }
         },
-        getImage(src, alt) {
+        getImage: function (src, alt) {
             return "<img class='' src='" + src + "' alt='" + alt + "'>"
 
+        },
+        addtoAutoKeywordsList: function (title) {
+            let index = this.autoKeywordsList.findIndex((keyword) => { return keyword.label == title })
+            if (index > -1) {
+                this.autoKeywordsList[index].count++;
+            } else {
+                this.autoKeywordsList.push({ label: title, count: 0 })
+            }
         }
     }
 })

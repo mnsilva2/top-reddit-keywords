@@ -84,29 +84,54 @@
                     <div class="row mb-3">
                         <div class="col-md-12">
                             <div class="custom-control custom-switch">
-                                <input type="checkbox" class="custom-control-input" id="includeOther"
-                                    v-model="includeOther">
-                                <label class="custom-control-label" for="includeOther">Include Other</label>
+                                <input type="checkbox" class="custom-control-input" id="showposts" v-model="showposts">
+                                <label class="custom-control-label" for="showposts">Show Posts</label>
                             </div>
                         </div>
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-12">
                             <div class="custom-control custom-switch">
-                                <input type="checkbox" class="custom-control-input" id="showposts" v-model="showposts">
-                                <label class="custom-control-label" for="showposts">Show Posts</label>
+                                <input type="checkbox" class="custom-control-input" id="autokeywords"
+                                    v-model="autokeywords">
+                                <label class="custom-control-label" for="autokeywords">Automatic Keywords</label>
                             </div>
                         </div>
                     </div>
+                    <div class="row mb-3 ml-2">
+                        <div class="col-md-12">
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">Max Keywords</span>
+                                </div>
+                                <input :disabled="!autokeywords" type="number" class="form-control"
+                                    placeholder="Max Keywords" aria-label="limitKeywords"
+                                    aria-describedby="Max Keywords" v-model="limitKeywords">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mb-3 ml-2">
+                        <div class="col-md-12">
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">Min Characters</span>
+                                </div>
+                                <input :disabled="!autokeywords" type="number" class="form-control"
+                                    placeholder="Min Characters" aria-label="minchars" aria-describedby="Min Characters"
+                                    v-model="minchars">
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
                 <div class="col-md-6">
                     <div class="row mb-3" v-for="(keyword, index) in keywords">
                         <div class="col-md-12">
                             <div class="input-group">
-                                <input :id="'keyword' + index" v-model="keywords[index].label"
+                                <input :disabled="autokeywords" :id="'keyword' + index" v-model="keywords[index].label"
                                     :placeholder="'Key word ' + (index+1)" class="form-control">
                                 <span class="input-group-btn">
-                                    <button type="button" class="btn btn-danger"
+                                    <button :disabled="autokeywords" type="button" class="btn btn-danger"
                                         @click="removeItem(index)">Remove</button>
                                 </span>
                             </div>
@@ -115,7 +140,8 @@
                     <div class="row">
                         <div class="col-md-12">
                             <div class="form-group">
-                                <button type="button" class=" btn btn-primary" @click="addAnother">Add Another</button>
+                                <button type="button" :disabled="autokeywords" class=" btn btn-primary"
+                                    @click="addAnother">Add Another</button>
                             </div>
                         </div>
                     </div>
